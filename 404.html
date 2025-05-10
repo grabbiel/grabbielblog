@@ -29,8 +29,8 @@
 
       if (possibleId && !isNaN(possibleId)) {
         console.log("Detected article ID request");
-        // This is likely an article request - load article.html
-        const redirectUrl = `/article.html${path}`;
+        // This is likely an article request - use query parameter
+        const redirectUrl = `/article.html?id=${possibleId}`;
         console.log("Redirecting to:", redirectUrl);
         window.location.href = redirectUrl;
       } else {

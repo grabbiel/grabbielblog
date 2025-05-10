@@ -36,6 +36,9 @@
         border: 1px solid #ddd;
         font-family: monospace;
         white-space: pre-wrap;
+        font-size: 12px;
+        max-height: 300px;
+        overflow-y: auto;
       }
     </style>
   </head>
@@ -73,117 +76,103 @@
       document.addEventListener("DOMContentLoaded", function () {
         updateDebug("DOMContentLoaded event fired");
         updateDebug(`Current URL: ${window.location.href}`);
-        updateDebug(`Current Path: ${window.location.pathname}`);
 
-        // Get article ID from URL
-        const fullPath = window.location.pathname;
-        updateDebug(`Full path: ${fullPath}`);
+        // Get article ID from URL query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const articleId = urlParams.get("id");
 
-        let articleId;
-
-        // Handle paths like /article.html/123 or /13
-        if (fullPath.includes("article.html")) {
-          articleId = fullPath.split("article.html")[1].substring(1);
-          updateDebug(`Extracted ID from article.html path: ${articleId}`);
-        } else {
-          articleId = fullPath.substring(1);
-          updateDebug(`Extracted ID from root path: ${articleId}`);
-        }
-
-        updateDebug(`Final article ID: ${articleId}`);
+        updateDebug(`Extracted article ID from query: ${articleId}`);
         updateDebug(`Is valid number: ${!isNaN(articleId)}`);
 
         if (articleId && !isNaN(articleId)) {
           updateDebug("Setting up article content fetch");
 
-          // Set up HTMX to load the article
-          const articleContainer = document.getElementById("article-container");
-          const articleUrl = `https://server.grabbiel.com/article/${articleId}/index.html`;
+          // Create base URL for all article resources
+          const baseUrl = `https://server.grabbiel.com/article/${articleId}`;
+          updateDebug(`Base URL for article resources: ${baseUrl}`);
 
-          updateDebug(`Will fetch article from: ${articleUrl}`);
-
-          articleContainer.setAttribute("hx-get", articleUrl);
-          articleContainer.setAttribute("hx-trigger", "load");
-          articleContainer.setAttribute("hx-swap", "innerHTML");
-
-          updateDebug("HTMX attributes set, article fetch should be triggered");
-
-          // Load article-specific CSS
-          updateDebug("Attempting to fetch article CSS");
-          const cssUrl = `https://server.grabbiel.com/article/${articleId}/style.css`;
-          updateDebug(`CSS URL: ${cssUrl}`);
-
-          fetch(cssUrl)
+          // 1. Fetch the HTML content directly instead of using HTMX
+          // This gives us more control over the loading process
+          updateDebug("Fetching article HTML content");
+          fetch(`${baseUrl}/index.html`)
             .then((response) => {
-              updateDebug(`CSS fetch status: ${response.status}`);
+              updateDebug(`HTML fetch status: ${response.status}`);
               if (response.ok) {
                 return response.text();
               }
-              throw new Error(`CSS fetch failed: ${response.status}`);
+              throw new Error(`HTML fetch failed: ${response.status}`);
             })
-            .then((css) => {
-              updateDebug("CSS loaded successfully");
-              const styleElement = document.createElement("style");
-              styleElement.textContent = css;
-              document.head.appendChild(styleElement);
+            .then((html) => {
+              updateDebug("HTML loaded successfully");
+              document.getElementById("article-container").innerHTML = html;
+
+              // After HTML is loaded, fetch additional resources
+              loadArticleResources(baseUrl);
             })
             .catch((error) => {
-              updateDebug(`CSS fetch error: ${error.message}`);
-            });
-
-          // Load article-specific JS
-          updateDebug("Attempting to fetch article JS");
-          const jsUrl = `https://server.grabbiel.com/article/${articleId}/script.js`;
-          updateDebug(`JS URL: ${jsUrl}`);
-
-          fetch(jsUrl)
-            .then((response) => {
-              updateDebug(`JS fetch status: ${response.status}`);
-              if (response.ok) {
-                return response.text();
-              }
-              throw new Error(`JS fetch failed: ${response.status}`);
-            })
-            .then((js) => {
-              updateDebug("JS loaded successfully");
-              const scriptElement = document.createElement("script");
-              scriptElement.textContent = js;
-              document.body.appendChild(scriptElement);
-            })
-            .catch((error) => {
-              updateDebug(`JS fetch error: ${error.message}`);
+              updateDebug(`HTML fetch error: ${error.message}`);
+              document.getElementById("article-container").innerHTML =
+                `<div class="error">
+                                <h2>Error loading article</h2>
+                                <p>${error.message}</p>
+                                <p><a href="/">Return to blog home</a></p>
+                            </div>`;
             });
         } else {
           // Not a valid article ID
           updateDebug("Invalid article ID, showing error");
           document.getElementById("article-container").innerHTML =
             '<div class="error">Invalid article ID. <a href="/">Return to blog home</a></div>';
+          document.getElementById("debug-info").style.display = "none";
         }
       });
 
-      // HTMX event debugging
-      document.addEventListener("htmx:beforeRequest", function (evt) {
-        updateDebug(`HTMX request starting: ${evt.detail.pathInfo.path}`);
-      });
+      // Function to load CSS and JS resources
+      function loadArticleResources(baseUrl) {
+        // 2. Load article-specific CSS
+        updateDebug("Fetching article CSS");
+        fetch(`${baseUrl}/style.css`)
+          .then((response) => {
+            updateDebug(`CSS fetch status: ${response.status}`);
+            if (response.ok) {
+              return response.text();
+            }
+            throw new Error(`CSS fetch failed: ${response.status}`);
+          })
+          .then((css) => {
+            updateDebug("CSS loaded successfully");
+            const styleElement = document.createElement("style");
+            styleElement.textContent = css;
+            document.head.appendChild(styleElement);
+          })
+          .catch((error) => {
+            updateDebug(`CSS fetch error: ${error.message}`);
+          });
 
-      document.addEventListener("htmx:afterRequest", function (evt) {
-        updateDebug(`HTMX request completed: ${evt.detail.pathInfo.path}`);
-      });
+        // 3. Load article-specific JS
+        updateDebug("Fetching article JS");
+        fetch(`${baseUrl}/script.js`)
+          .then((response) => {
+            updateDebug(`JS fetch status: ${response.status}`);
+            if (response.ok) {
+              return response.text();
+            }
+            throw new Error(`JS fetch failed: ${response.status}`);
+          })
+          .then((js) => {
+            updateDebug("JS loaded successfully");
+            const scriptElement = document.createElement("script");
+            scriptElement.textContent = js;
+            document.body.appendChild(scriptElement);
+          })
+          .catch((error) => {
+            updateDebug(`JS fetch error: ${error.message}`);
+          });
 
-      document.addEventListener("htmx:responseError", function (evt) {
-        updateDebug(
-          `HTMX Error: ${evt.detail.xhr.status} ${evt.detail.xhr.statusText}`,
-        );
-        updateDebug(
-          `Response: ${evt.detail.xhr.responseText.substring(0, 100)}...`,
-        );
-        document.getElementById("article-container").innerHTML =
-          `<div class="error">
-                    <h2>Error loading article</h2>
-                    <p>Status: ${evt.detail.xhr.status} ${evt.detail.xhr.statusText}</p>
-                    <p><a href="/">Return to blog home</a></p>
-                </div>`;
-      });
+        // 4. Check for and load any additional files
+        // This is where you could add logic to fetch other resources
+        // like images or other assets specific to the article
+      }
     </script>
   </body>
 </html>
