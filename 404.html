@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Page Not Found - Grabbiel Blog</title>
+    <link rel="stylesheet" href="/css/main.css" />
+    <script>
+      // Check if this might be an article ID
+      const path = window.location.pathname;
+      const possibleId = path.split("/")[1];
+
+      if (possibleId && !isNaN(possibleId)) {
+        // This might be an article - redirect to article.html
+        window.location.href = `/article.html#${possibleId}`;
+      } else {
+        // Not a potential article, redirect to home after delay
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 3000);
+      }
+    </script>
+  </head>
+  <body>
+    <header>
+      <h1>Grabbiel Blog</h1>
+    </header>
+    <main>
+      <h2>Page Not Found</h2>
+      <p>
+        The page you're looking for doesn't exist. Redirecting you to the home
+        page...
+      </p>
+    </main>
+    <footer>
+      <p>&copy; 2025 Grabbiel. All rights reserved.</p>
+    </footer>
+  </body>
+</html>

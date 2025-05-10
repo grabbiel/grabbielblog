@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grabbiel Blog</title>
+    <link rel="stylesheet" href="/css/main.css" />
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Grabbiel Blog</h1>
+      <nav>
+        <a href="https://grabbiel.com">Home</a>
+        <a href="https://game.grabbiel.com">Games</a>
+        <a href="https://shorts.grabbiel.com">Shorts</a>
+      </nav>
+    </header>
+
+    <main>
+      <div
+        id="articles-container"
+        hx-get="https://server.grabbiel.com/blog/articles"
+        hx-trigger="load"
+        hx-indicator=".loading-indicator"
+      >
+        <div class="loading-indicator">Loading articles...</div>
+      </div>
+    </main>
+
+    <footer>
+      <p>&copy; 2025 Grabbiel. All rights reserved.</p>
+    </footer>
+
+    <script src="/js/main.js"></script>
+  </body>
+</html>
