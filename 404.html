@@ -4,36 +4,55 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Page Not Found - Grabbiel Blog</title>
-    <link rel="stylesheet" href="/css/main.css" />
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+      }
+    </style>
     <script>
+      console.log("404.html loaded");
+      console.log("Current URL:", window.location.href);
+      console.log("Path:", window.location.pathname);
+
       // Check if this might be an article ID
       const path = window.location.pathname;
       const possibleId = path.split("/")[1];
 
+      console.log("Possible article ID:", possibleId);
+      console.log("isNaN check:", !isNaN(possibleId));
+
       if (possibleId && !isNaN(possibleId)) {
-        // This might be an article - redirect to article.html
-        window.location.href = `/article.html#${possibleId}`;
+        console.log("Detected article ID request");
+        // This is likely an article request - load article.html
+        const redirectUrl = `/article.html${path}`;
+        console.log("Redirecting to:", redirectUrl);
+        window.location.href = redirectUrl;
       } else {
+        console.log("Not a valid article ID, will redirect to home");
         // Not a potential article, redirect to home after delay
         setTimeout(() => {
+          console.log("Redirecting to home page");
           window.location.href = "/";
         }, 3000);
       }
     </script>
   </head>
   <body>
-    <header>
-      <h1>Grabbiel Blog</h1>
-    </header>
-    <main>
-      <h2>Page Not Found</h2>
-      <p>
-        The page you're looking for doesn't exist. Redirecting you to the home
-        page...
-      </p>
-    </main>
-    <footer>
-      <p>&copy; 2025 Grabbiel. All rights reserved.</p>
-    </footer>
+    <h1>Page Not Found</h1>
+    <p>The page you're looking for doesn't exist.</p>
+    <p>If this is an article, you'll be redirected automatically.</p>
+    <p>
+      Otherwise, you'll be redirected to the <a href="/">home page</a> in a few
+      seconds.
+    </p>
+    <p>
+      <small>Check the browser console (F12) for debugging information.</small>
+    </p>
   </body>
 </html>

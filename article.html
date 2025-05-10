@@ -4,9 +4,40 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Article - Grabbiel Blog</title>
-    <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/article.css" />
     <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      header {
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #eaeaea;
+        padding-bottom: 1rem;
+      }
+      nav a {
+        margin-right: 1rem;
+        text-decoration: none;
+        color: #0066cc;
+      }
+      .loading-indicator {
+        text-align: center;
+        padding: 2rem;
+        color: #666;
+      }
+      .debug-info {
+        margin-top: 20px;
+        padding: 10px;
+        background: #f8f8f8;
+        border: 1px solid #ddd;
+        font-family: monospace;
+        white-space: pre-wrap;
+      }
+    </style>
   </head>
   <body>
     <header>
@@ -18,21 +49,141 @@
     </header>
 
     <main>
-      <article
-        id="article-container"
-        hx-get="https://server.grabbiel.com/article/"
-        hx-trigger="load"
-        hx-indicator=".loading-indicator"
-      >
+      <article id="article-container" class="article-content">
         <div class="loading-indicator">Loading article...</div>
       </article>
+
+      <!-- Debug information -->
+      <div id="debug-info" class="debug-info">Loading debug information...</div>
     </main>
 
     <footer>
       <p>&copy; 2025 Grabbiel. All rights reserved.</p>
     </footer>
 
-    <script src="/js/main.js"></script>
-    <script src="/js/article.js"></script>
+    <script>
+      // Update debug info
+      function updateDebug(message) {
+        const debugEl = document.getElementById("debug-info");
+        const timestamp = new Date().toISOString().substring(11, 23);
+        debugEl.innerHTML += `[${timestamp}] ${message}\n`;
+        console.log(message);
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        updateDebug("DOMContentLoaded event fired");
+        updateDebug(`Current URL: ${window.location.href}`);
+        updateDebug(`Current Path: ${window.location.pathname}`);
+
+        // Get article ID from URL
+        const fullPath = window.location.pathname;
+        updateDebug(`Full path: ${fullPath}`);
+
+        let articleId;
+
+        // Handle paths like /article.html/123 or /13
+        if (fullPath.includes("article.html")) {
+          articleId = fullPath.split("article.html")[1].substring(1);
+          updateDebug(`Extracted ID from article.html path: ${articleId}`);
+        } else {
+          articleId = fullPath.substring(1);
+          updateDebug(`Extracted ID from root path: ${articleId}`);
+        }
+
+        updateDebug(`Final article ID: ${articleId}`);
+        updateDebug(`Is valid number: ${!isNaN(articleId)}`);
+
+        if (articleId && !isNaN(articleId)) {
+          updateDebug("Setting up article content fetch");
+
+          // Set up HTMX to load the article
+          const articleContainer = document.getElementById("article-container");
+          const articleUrl = `https://server.grabbiel.com/article/${articleId}/index.html`;
+
+          updateDebug(`Will fetch article from: ${articleUrl}`);
+
+          articleContainer.setAttribute("hx-get", articleUrl);
+          articleContainer.setAttribute("hx-trigger", "load");
+          articleContainer.setAttribute("hx-swap", "innerHTML");
+
+          updateDebug("HTMX attributes set, article fetch should be triggered");
+
+          // Load article-specific CSS
+          updateDebug("Attempting to fetch article CSS");
+          const cssUrl = `https://server.grabbiel.com/article/${articleId}/style.css`;
+          updateDebug(`CSS URL: ${cssUrl}`);
+
+          fetch(cssUrl)
+            .then((response) => {
+              updateDebug(`CSS fetch status: ${response.status}`);
+              if (response.ok) {
+                return response.text();
+              }
+              throw new Error(`CSS fetch failed: ${response.status}`);
+            })
+            .then((css) => {
+              updateDebug("CSS loaded successfully");
+              const styleElement = document.createElement("style");
+              styleElement.textContent = css;
+              document.head.appendChild(styleElement);
+            })
+            .catch((error) => {
+              updateDebug(`CSS fetch error: ${error.message}`);
+            });
+
+          // Load article-specific JS
+          updateDebug("Attempting to fetch article JS");
+          const jsUrl = `https://server.grabbiel.com/article/${articleId}/script.js`;
+          updateDebug(`JS URL: ${jsUrl}`);
+
+          fetch(jsUrl)
+            .then((response) => {
+              updateDebug(`JS fetch status: ${response.status}`);
+              if (response.ok) {
+                return response.text();
+              }
+              throw new Error(`JS fetch failed: ${response.status}`);
+            })
+            .then((js) => {
+              updateDebug("JS loaded successfully");
+              const scriptElement = document.createElement("script");
+              scriptElement.textContent = js;
+              document.body.appendChild(scriptElement);
+            })
+            .catch((error) => {
+              updateDebug(`JS fetch error: ${error.message}`);
+            });
+        } else {
+          // Not a valid article ID
+          updateDebug("Invalid article ID, showing error");
+          document.getElementById("article-container").innerHTML =
+            '<div class="error">Invalid article ID. <a href="/">Return to blog home</a></div>';
+        }
+      });
+
+      // HTMX event debugging
+      document.addEventListener("htmx:beforeRequest", function (evt) {
+        updateDebug(`HTMX request starting: ${evt.detail.pathInfo.path}`);
+      });
+
+      document.addEventListener("htmx:afterRequest", function (evt) {
+        updateDebug(`HTMX request completed: ${evt.detail.pathInfo.path}`);
+      });
+
+      document.addEventListener("htmx:responseError", function (evt) {
+        updateDebug(
+          `HTMX Error: ${evt.detail.xhr.status} ${evt.detail.xhr.statusText}`,
+        );
+        updateDebug(
+          `Response: ${evt.detail.xhr.responseText.substring(0, 100)}...`,
+        );
+        document.getElementById("article-container").innerHTML =
+          `<div class="error">
+                    <h2>Error loading article</h2>
+                    <p>Status: ${evt.detail.xhr.status} ${evt.detail.xhr.statusText}</p>
+                    <p><a href="/">Return to blog home</a></p>
+                </div>`;
+      });
+    </script>
   </body>
 </html>
