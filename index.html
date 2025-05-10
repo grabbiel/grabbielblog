@@ -135,15 +135,34 @@
         log("Initializing blog application");
         log(`Current path: ${window.location.pathname}`);
 
-        // Check if we're on an article page
-        const path = window.location.pathname;
-        const articleId = path.substring(1); // Remove leading slash
+        // Check for redirected path from 404.html
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectedPath = urlParams.get("path");
+
+        // Check if we're on an article page - either directly or via redirect
+        let articleId;
+
+        if (redirectedPath && !isNaN(redirectedPath)) {
+          // We were redirected here from 404.html with a path parameter
+          articleId = redirectedPath;
+          log(`Article ID from redirect: ${articleId}`);
+
+          // Clean up the URL (remove the query parameter)
+          if (history.replaceState) {
+            history.replaceState(null, null, `/${articleId}`);
+          }
+        } else {
+          // Check the actual path
+          const path = window.location.pathname;
+          articleId = path.substring(1); // Remove leading slash
+          log(`Article ID from direct path: ${articleId}`);
+        }
 
         if (articleId && !isNaN(articleId)) {
-          log(`Article ID detected: ${articleId}`);
+          log(`Valid article ID detected: ${articleId}`);
           showArticle(articleId);
         } else {
-          log("No article ID detected, showing article listing");
+          log("No valid article ID detected, showing article listing");
           showArticleListing();
         }
 
