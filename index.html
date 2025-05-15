@@ -202,6 +202,13 @@
             }
             return response.text();
           })
+          .then((html) => {
+            articleContainer.innerHTML = html;
+            log("Article HTML loaded successfully");
+
+            // Load CSS
+            return true;
+          })
           .catch((error) => {
             log(`Error: ${error.message}`);
             articleContainer.innerHTML = `
