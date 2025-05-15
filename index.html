@@ -216,32 +216,6 @@
             }
             return response.text();
           })
-          .then((css) => {
-            if (css) {
-              const styleEl = document.createElement("style");
-              styleEl.textContent = css;
-              document.head.appendChild(styleEl);
-              log("Article CSS loaded successfully");
-            }
-
-            // Load JavaScript
-            return fetch(`${baseUrl}/script.js`);
-          })
-          .then((response) => {
-            if (!response.ok) {
-              log("No custom JS found for this article");
-              return null;
-            }
-            return response.text();
-          })
-          .then((js) => {
-            if (js) {
-              const scriptEl = document.createElement("script");
-              scriptEl.textContent = js;
-              document.body.appendChild(scriptEl);
-              log("Article JS loaded successfully");
-            }
-          })
           .catch((error) => {
             log(`Error: ${error.message}`);
             articleContainer.innerHTML = `

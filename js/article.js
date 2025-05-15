@@ -13,46 +13,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // Trigger the load
     htmx.trigger(articleContainer, "load");
 
-    // Also load article-specific CSS and JS
-    loadArticleResources(articleId);
   } else {
     // Not a valid article ID in the URL
     window.location.href = "/";
   }
 });
-
-function loadArticleResources(articleId) {
-  // Load article-specific CSS
-  fetch(`https://server.grabbiel.com/article/${articleId}/style.css`)
-    .then((response) => {
-      if (response.ok) {
-        return response.text();
-      }
-      return null;
-    })
-    .then((css) => {
-      if (css) {
-        const styleElement = document.createElement("style");
-        styleElement.textContent = css;
-        document.head.appendChild(styleElement);
-      }
-    })
-    .catch((error) => console.log("No custom CSS for this article"));
-
-  // Load article-specific JS
-  fetch(`https://server.grabbiel.com/article/${articleId}/script.js`)
-    .then((response) => {
-      if (response.ok) {
-        return response.text();
-      }
-      return null;
-    })
-    .then((js) => {
-      if (js) {
-        const scriptElement = document.createElement("script");
-        scriptElement.textContent = js;
-        document.body.appendChild(scriptElement);
-      }
-    })
-    .catch((error) => console.log("No custom JS for this article"));
-}
