@@ -202,20 +202,6 @@
             }
             return response.text();
           })
-          .then((html) => {
-            articleContainer.innerHTML = html;
-            log("Article HTML loaded successfully");
-
-            // Load CSS
-            return fetch(`${baseUrl}/style.css`);
-          })
-          .then((response) => {
-            if (!response.ok) {
-              log("No custom CSS found for this article");
-              return null;
-            }
-            return response.text();
-          })
           .catch((error) => {
             log(`Error: ${error.message}`);
             articleContainer.innerHTML = `
