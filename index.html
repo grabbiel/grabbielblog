@@ -285,7 +285,7 @@
                         hx-trigger="load"
                         hx-target="head"
                         hx-swap="beforeend"
-                        hx-select="head link, head script, head style"
+                        hx-select="link"
                         hx-on="htmx:afterSettle: console.log('✅ Head elements loaded')"
                         style="display: none;"></div>
                     
@@ -295,7 +295,7 @@
                         hx-trigger="load"
                         hx-target="#temp-loader"
                         hx-swap="afterend"
-                        hx-select="body > *"
+                        hx-select="body"
                         hx-on="htmx:afterSettle: replaceBodyContent(this)">
                         <div class="loading">
                             <p>Loading article...</p>
