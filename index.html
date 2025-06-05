@@ -283,7 +283,7 @@
                     <!-- Load head elements first (links, scripts, styles) -->
                     <div hx-get="${articleUrl}" 
                         hx-trigger="load"
-                        hx-target="body"
+                        hx-target="#doc-body"
                         hx-swap="beforeend"
                         hx-select="link > *"
                         hx-on="htmx:afterSettle: console.log('✅ Head elements loaded')"
