@@ -308,22 +308,33 @@
             }
         }
 
-      function replaceContent(loader) {
-          const newContent = loader.nextElementSibling;
-          const container = document.getElementById('content-container');
-          if (newContent) {
-              container.innerHTML = '';
-              container.appendChild(newContent);
-              loader.remove();
-              console.log('✅ Content replaced, scripts should execute');
-              
-              // Handle article title updates here
-              const articleTitle = document.querySelector('.article-title-large');
-              if (articleTitle) {
-                  document.title = `${articleTitle.textContent} - Grabbiel Blog`;
-              }
-          }
-      }
+        function replaceContent(loader) {
+            const container = document.getElementById('content-container');
+            const allNewContent = [];
+            
+            // Collect ALL siblings that were inserted after the loader
+            let sibling = loader.nextElementSibling;
+            while (sibling) {
+                allNewContent.push(sibling);
+                sibling = sibling.nextElementSibling;
+            }
+            
+            if (allNewContent.length > 0) {
+                container.innerHTML = '';
+                // Append all the new content elements
+                allNewContent.forEach(element => {
+                    container.appendChild(element);
+                });
+                loader.remove();
+                console.log('✅ Content replaced, scripts should execute');
+                
+                // Handle article title updates here
+                const articleTitle = document.querySelector('.article-title-large');
+                if (articleTitle) {
+                    document.title = `${articleTitle.textContent} - Grabbiel Blog`;
+                }
+            }
+        }
 
         // Global navigation functions
         function goHome() {
