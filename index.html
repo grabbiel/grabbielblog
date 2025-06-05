@@ -88,177 +88,63 @@
       <nav>
         <a href="/">Blog Home</a>
         <a href="https://grabbiel.com">Main Site</a>
-        <a href="https://game.grabbiel.com">Games</a>
-        <a href="https://shorts.grabbiel.com">Shorts</a>
       </nav>
     </header>
 
     <main>
-      <!-- Article listing view -->
-      <section id="article-listing" class="article-listing">
-        <div
-          id="articles-container"
-          hx-get="https://server.grabbiel.com/blog/articles"
-          hx-trigger="load"
-          hx-indicator=".loading-indicator"
-        >
+      <!-- This container will be populated by HTMX -->
+      <div id="content" 
+          hx-boost="true"
+          hx-indicator=".loading-indicator">
+        
+        <!-- Default: Show article listing -->
+        <div id="article-listing"
+            hx-get="https://server.grabbiel.com/blog/articles"
+            hx-trigger="load"
+            hx-swap="innerHTML">
           <div class="loading-indicator">Loading articles...</div>
         </div>
-      </section>
-
-      <!-- Single article view -->
-      <section id="article-view" class="article-view">
-        <div id="article-container">
-          <div class="loading-indicator">Loading article...</div>
-        </div>
-        <p><a href="/" class="back-link">← Back to articles</a></p>
-      </section>
-
-      <!-- Debug panel (can be removed in production) -->
-      <div id="debug-info" class="debug-info">Initializing...</div>
+      </div>
     </main>
 
-    <footer>
-      <p>&copy; 2025 Grabbiel. All rights reserved.</p>
-    </footer>
+    <div class="loading-indicator" style="display:none;">Loading...</div>
 
     <script>
-      // Debug logger
-      function log(message) {
-        const debugEl = document.getElementById("debug-info");
-        debugEl.innerHTML += message + "<br>";
-        console.log(message);
-      }
-
-      // Main initialization function
-      function init() {
-        log("Initializing blog application");
-        log(`Current path: ${window.location.pathname}`);
-
-        // Check for redirected path from 404.html
+      // Handle initial page load routing
+      document.addEventListener('DOMContentLoaded', function() {
+        const path = window.location.pathname;
         const urlParams = new URLSearchParams(window.location.search);
         const redirectedPath = urlParams.get("path");
-
-        // Check if we're on an article page - either directly or via redirect
+        
         let articleId;
-
+        
+        // Handle redirected paths from 404
         if (redirectedPath && !isNaN(redirectedPath)) {
-          // We were redirected here from 404.html with a path parameter
           articleId = redirectedPath;
-          log(`Article ID from redirect: ${articleId}`);
-
-          // Clean up the URL (remove the query parameter)
-          if (history.replaceState) {
-            history.replaceState(null, null, `/${articleId}`);
+          // Clean URL
+          history.replaceState(null, null, `/article/${articleId}`);
+        }
+        // Handle direct article paths
+        else {
+          const articleMatch = path.match(/^\/article\/(\d+)$/);
+          if (articleMatch) {
+            articleId = articleMatch[1];
           }
-        } else {
-          // Check the actual path
-          const path = window.location.pathname;
-          articleId = path.substring(1); // Remove leading slash
-          log(`Article ID from direct path: ${articleId}`);
         }
-
-        if (articleId && !isNaN(articleId)) {
-          log(`Valid article ID detected: ${articleId}`);
-          showArticle(articleId);
-        } else {
-          log("No valid article ID detected, showing article listing");
-          showArticleListing();
-        }
-
-        // Set up event handlers for navigation
-        window.addEventListener("popstate", handleNavigation);
-      }
-
-      // Handle browser navigation (back/forward)
-      function handleNavigation() {
-        log("Navigation event detected");
-        init(); // Re-run initialization logic
-      }
-
-      // Show the article listing
-      function showArticleListing() {
-        document.getElementById("article-listing").style.display = "block";
-        document.getElementById("article-view").style.display = "none";
-        document.title = "Grabbiel Blog";
-      }
-
-      // Show a specific article
-      function showArticle(articleId) {
-        document.getElementById("article-listing").style.display = "none";
-        document.getElementById("article-view").style.display = "block";
-
-        const articleContainer = document.getElementById("article-container");
-        const baseUrl = `https://server.grabbiel.com/article/${articleId}`;
-
-        log(`Loading article ${articleId} from ${baseUrl}`);
-
-        // Fetch article HTML
-        fetch(`${baseUrl}/index.html`)
-          .then((response) => {
-            log(`Article HTML fetch status: ${response.status}`);
-            if (!response.ok) {
-              throw new Error(`Failed to load article: ${response.status}`);
-            }
-            return response.text();
-          })
-          .then((html) => {
-            articleContainer.innerHTML = html;
-            log("Article HTML loaded successfully");
-
-            // Load CSS
-            return true;
-          })
-          .catch((error) => {
-            log(`Error: ${error.message}`);
-            articleContainer.innerHTML = `
-                        <div class="error">
-                            <h2>Error Loading Article</h2>
-                            <p>${error.message}</p>
-                            <p><a href="/">Return to articles</a></p>
-                        </div>
-                    `;
+        
+        // If we have an article ID, load it with HTMX
+        if (articleId) {
+          const contentDiv = document.getElementById('content');
+          contentDiv.innerHTML = '<div class="loading-indicator">Loading article...</div>';
+          
+          // Use HTMX to load the article
+          htmx.ajax('GET', `https://server.grabbiel.com/article/${articleId}/index.html`, {
+            target: '#content',
+            swap: 'innerHTML'
           });
-
-        // Update page title
-        document.title = `Article ${articleId} - Grabbiel Blog`;
-      }
-
-      // Intercept article links to use client-side navigation
-      document.addEventListener("click", function (event) {
-        // Find closest anchor element
-        let anchor = event.target.closest("a");
-
-        if (!anchor) return; // Not a link click
-
-        const href = anchor.getAttribute("href");
-
-        // Check if it's an article link (format: /123)
-        const articleLinkPattern = /^\/(\d+)$/;
-        const match = href.match(articleLinkPattern);
-
-        if (match) {
-          event.preventDefault(); // Don't navigate away
-
-          const articleId = match[1];
-          log(`Intercepted click to article ${articleId}`);
-
-          // Update browser URL without refreshing
-          history.pushState({ articleId }, "", href);
-
-          // Show the article
-          showArticle(articleId);
+          
+          document.title = `Article ${articleId} - Grabbiel Blog`;
         }
-      });
-
-      // Initialize the application when DOM is loaded
-      document.addEventListener("DOMContentLoaded", init);
-
-      // Debug HTMX errors
-      document.addEventListener("htmx:responseError", function (event) {
-        log(
-          `HTMX Error: ${event.detail.xhr.status} ${event.detail.xhr.statusText}`,
-        );
       });
     </script>
   </body>
