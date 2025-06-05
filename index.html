@@ -280,12 +280,23 @@
                 const articleUrl = `https://server.grabbiel.com/article/${articleId}`;
                 
                 this.container.innerHTML = `
+                    <!-- Load head elements first (links, scripts, styles) -->
+                    <div hx-get="${articleUrl}" 
+                        hx-trigger="load"
+                        hx-target="head"
+                        hx-swap="beforeend"
+                        hx-select="head link, head script, head style"
+                        hx-on="htmx:afterSettle: console.log('✅ Head elements loaded')"
+                        style="display: none;"></div>
+                    
+                    <!-- Load body content after a small delay -->
                     <div id="temp-loader"
-                         hx-get="${articleUrl}" 
-                         hx-trigger="load"
-                         hx-target="#temp-loader"
-                         hx-swap="afterend"
-                         hx-on="htmx:afterSettle: replaceContent(this)">
+                        hx-get="${articleUrl}" 
+                        hx-trigger="load"
+                        hx-target="#temp-loader"
+                        hx-swap="afterend"
+                        hx-select="body > *"
+                        hx-on="htmx:afterSettle: replaceBodyContent(this)">
                         <div class="loading">
                             <p>Loading article...</p>
                         </div>
@@ -294,7 +305,8 @@
                 
                 // Trigger HTMX
                 htmx.process(this.container);
-                htmx.trigger(this.container.firstElementChild, 'load');
+                htmx.trigger(this.container.querySelector('[hx-trigger="load"]'), 'load');
+                htmx.trigger(this.container.querySelector('#temp-loader'), 'load');
             }
 
             navigateToHome() {
@@ -308,8 +320,7 @@
             }
         }
 
-        function replaceContent(loader) {
-            const container = document.getElementById('content-container');
+        function replaceBodyContent(loader) {
             const allNewContent = [];
             
             // Collect ALL siblings that were inserted after the loader
@@ -320,15 +331,18 @@
             }
             
             if (allNewContent.length > 0) {
+                const container = document.getElementById('content-container');
                 container.innerHTML = '';
+                
                 // Append all the new content elements
                 allNewContent.forEach(element => {
                     container.appendChild(element);
                 });
-                loader.remove();
-                console.log('✅ Content replaced, scripts should execute');
                 
-                // Handle article title updates here
+                loader.remove();
+                console.log('✅ Body content replaced');
+                
+                // Handle article title updates
                 const articleTitle = document.querySelector('.article-title-large');
                 if (articleTitle) {
                     document.title = `${articleTitle.textContent} - Grabbiel Blog`;
