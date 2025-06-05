@@ -280,10 +280,12 @@
                 const articleUrl = `https://server.grabbiel.com/article/${articleId}`;
                 
                 this.container.innerHTML = `
-                    <div hx-get="${articleUrl}" 
+                    <div id="temp-loader"
+                         hx-get="${articleUrl}" 
                          hx-trigger="load"
-                         hx-target="#content-container"
-                         hx-swap="innerHTML">
+                         hx-target="#temp-loader"
+                         hx-swap="afterend"
+                         hx-on="htmx:afterSettle: replaceContent(this)">
                         <div class="loading">
                             <p>Loading article...</p>
                         </div>
@@ -305,6 +307,23 @@
                 this.showArticle(articleId);
             }
         }
+
+      function replaceContent(loader) {
+          const newContent = loader.nextElementSibling;
+          const container = document.getElementById('content-container');
+          if (newContent) {
+              container.innerHTML = '';
+              container.appendChild(newContent);
+              loader.remove();
+              console.log('✅ Content replaced, scripts should execute');
+              
+              // Handle article title updates here
+              const articleTitle = document.querySelector('.article-title-large');
+              if (articleTitle) {
+                  document.title = `${articleTitle.textContent} - Grabbiel Blog`;
+              }
+          }
+      }
 
         // Global navigation functions
         function goHome() {
@@ -358,8 +377,6 @@
                 </div>
             `;
         });
-
-        // Handle successful content load
         document.addEventListener('htmx:afterSettle', function(event) {
             if (event.target.id === 'content-container') {
                 // Add click handlers for article navigation in blog list
@@ -370,12 +387,6 @@
                         goToArticle(articleId);
                     });
                 });
-                
-                // Update page title if we loaded an article
-                const articleTitle = document.querySelector('.article-title-large');
-                if (articleTitle) {
-                    document.title = `${articleTitle.textContent} - Grabbiel Blog`;
-                }
             }
         });
     </script>
