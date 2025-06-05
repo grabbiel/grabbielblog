@@ -1,21 +1,22 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Redirecting...</title>
-  <script>
-    const path = window.location.pathname;
-    
-    // Handle /15 format -> redirect to /article/15
-    if (path.match(/^\/(\d+)$/)) {
-      const articleId = path.substring(1);
-      window.location.replace(`/article/${articleId}`);
-    }
-    // Handle other paths -> redirect to home with path parameter
-    else {
-      window.location.replace(`/?path=${path.substring(1)}`);
-    }
-  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grabbiel Blog</title>
 </head>
-<body>Redirecting...</body>
+<body>
+    <script>
+        // GitHub Pages 404 handler for client-side routing
+        // This redirects any unknown route to index.html with the path preserved
+        
+        const path = window.location.pathname;
+        const search = window.location.search;
+        const hash = window.location.hash;
+        
+        // Redirect to index.html but preserve the original path
+        // GitHub Pages will serve index.html, and our router will handle the path
+        window.location.replace('/' + '?redirect=' + encodeURIComponent(path + search + hash));
+    </script>
+</body>
 </html>

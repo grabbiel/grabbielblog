@@ -1,151 +1,383 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grabbiel Blog</title>
-    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <style>
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        line-height: 1.6;
-        color: #333;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-      }
-      header {
-        margin-bottom: 2rem;
-        border-bottom: 1px solid #eaeaea;
-        padding-bottom: 1rem;
-      }
-      nav a {
-        margin-right: 1rem;
-        text-decoration: none;
-        color: #0066cc;
-      }
-      .articles-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 2rem;
-      }
-      .article-card {
-        border: 1px solid #eaeaea;
-        border-radius: 8px;
-        overflow: hidden;
-        transition: transform 0.3s ease;
-      }
-      .article-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-      }
-      .article-card img {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-      }
-      .article-info {
-        padding: 1rem;
-      }
-      .read-more {
-        display: inline-block;
-        margin-top: 1rem;
-        padding: 0.5rem 1rem;
-        background-color: #0066cc;
-        color: white;
-        text-decoration: none;
-        border-radius: 4px;
-      }
-      .loading-indicator {
-        text-align: center;
-        padding: 2rem;
-        color: #666;
-      }
-      .article-view {
-        display: none; /* Hidden by default */
-        max-width: 800px;
-        margin: 0 auto;
-      }
-      .article-listing {
-        display: block; /* Shown by default */
-      }
-      .debug-info {
-        margin-top: 20px;
-        padding: 10px;
-        background: #f8f8f8;
-        border: 1px solid #ddd;
-        font-family: monospace;
-        white-space: pre-wrap;
-        font-size: 12px;
-        max-height: 200px;
-        overflow-y: auto;
-      }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            margin: 0;
+        }
+        
+        .back-link {
+            display: none;
+            color: #3498db;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .back-link::before {
+            content: "← ";
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .article-list {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .article-card {
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 20px;
+            transition: box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .article-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .article-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-decoration: none;
+        }
+        
+        .article-title:hover {
+            color: #3498db;
+        }
+        
+        .article-meta {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .article-summary {
+            color: #555;
+            line-height: 1.5;
+        }
+        
+        .read-more {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        .read-more:hover {
+            text-decoration: underline;
+        }
+        
+        /* Article view styles */
+        .article-content {
+            max-width: 100%;
+        }
+        
+        .article-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .article-title-large {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+        
+        .article-meta-large {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+        
+        .article-body {
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+        
+        .article-body h1,
+        .article-body h2,
+        .article-body h3 {
+            color: #2c3e50;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .article-body p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .article-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .article-body blockquote {
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+            padding-left: 20px;
+            font-style: italic;
+            color: #555;
+        }
+        
+        .article-body code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9em;
+        }
+        
+        .article-body pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        .article-body pre code {
+            background: none;
+            padding: 0;
+        }
     </style>
-  </head>
-  <body>
-    <header>
-      <h1>Grabbiel Blog</h1>
-      <nav>
-        <a href="/">Blog Home</a>
-        <a href="https://grabbiel.com">Main Site</a>
-      </nav>
-    </header>
+</head>
+<body>
+    <div class="header">
+        <div class="back-link" id="back-link" onclick="goHome()">Back to Blog</div>
+        <h1>Grabbiel Blog</h1>
+        <p id="header-subtitle">Latest articles and insights</p>
+    </div>
 
     <main>
-      <!-- This container will be populated by HTMX -->
-      <div id="content" 
-          hx-boost="true"
-          hx-indicator=".loading-indicator">
-        
-        <!-- Default: Show article listing -->
-        <div id="article-listing"
-            hx-get="https://server.grabbiel.com/blog/articles"
-            hx-trigger="load"
-            hx-swap="innerHTML">
-          <div class="loading-indicator">Loading articles...</div>
+        <!-- This container will hold either the blog list or individual article -->
+        <div id="content-container">
+            <div class="loading">
+                <p>Loading...</p>
+            </div>
         </div>
-      </div>
     </main>
 
-    <div class="loading-indicator" style="display:none;">Loading...</div>
-
     <script>
-      // Handle initial page load routing
-      document.addEventListener('DOMContentLoaded', function() {
-        const path = window.location.pathname;
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirectedPath = urlParams.get("path");
-        
-        let articleId;
-        
-        // Handle redirected paths from 404
-        if (redirectedPath && !isNaN(redirectedPath)) {
-          articleId = redirectedPath;
-          // Clean URL
-          history.replaceState(null, null, `/article/${articleId}`);
+        // Router for GitHub Pages
+        class GitHubPagesRouter {
+            constructor() {
+                this.container = document.getElementById('content-container');
+                this.backLink = document.getElementById('back-link');
+                this.headerSubtitle = document.getElementById('header-subtitle');
+            }
+
+            init() {
+                // Handle initial page load
+                this.handleRoute();
+                
+                // Handle browser back/forward
+                window.addEventListener('popstate', () => {
+                    this.handleRoute();
+                });
+            }
+
+            handleRoute() {
+                const path = window.location.pathname;
+                
+                if (path === '/' || path === '/index.html') {
+                    this.showBlogList();
+                } else {
+                    // Check if it's an article ID pattern
+                    const articleMatch = path.match(/^\/(\d+)\/?$/);
+                    if (articleMatch) {
+                        this.showArticle(articleMatch[1]);
+                    } else {
+                        // Unknown route - redirect to home
+                        this.navigateToHome();
+                    }
+                }
+            }
+
+            showBlogList() {
+                // Update UI for blog list view
+                this.backLink.style.display = 'none';
+                this.headerSubtitle.textContent = 'Latest articles and insights';
+                document.title = 'Grabbiel Blog';
+                
+                // Set up HTMX to load blog articles
+                this.container.innerHTML = `
+                    <div hx-get="https://server.grabbiel.com/blog/articles" 
+                         hx-trigger="load"
+                         hx-target="#content-container"
+                         hx-swap="innerHTML">
+                        <div class="loading">
+                            <p>Loading articles...</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Trigger HTMX
+                htmx.process(this.container);
+                htmx.trigger(this.container.firstElementChild, 'load');
+            }
+
+            showArticle(articleId) {
+                // Update UI for article view
+                this.backLink.style.display = 'inline-block';
+                this.headerSubtitle.textContent = '';
+                document.title = `Article ${articleId} - Grabbiel Blog`;
+                
+                // Set up HTMX to load specific article
+                const articleUrl = `https://server.grabbiel.com/article/${articleId}`;
+                
+                this.container.innerHTML = `
+                    <div hx-get="${articleUrl}" 
+                         hx-trigger="load"
+                         hx-target="#content-container"
+                         hx-swap="innerHTML">
+                        <div class="loading">
+                            <p>Loading article...</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Trigger HTMX
+                htmx.process(this.container);
+                htmx.trigger(this.container.firstElementChild, 'load');
+            }
+
+            navigateToHome() {
+                window.history.pushState({}, '', '/');
+                this.showBlogList();
+            }
+
+            navigateToArticle(articleId) {
+                window.history.pushState({}, '', `/${articleId}`);
+                this.showArticle(articleId);
+            }
         }
-        // Handle direct article paths
-        else {
-          const articleMatch = path.match(/^\/article\/(\d+)$/);
-          if (articleMatch) {
-            articleId = articleMatch[1];
-          }
+
+        // Global navigation functions
+        function goHome() {
+            router.navigateToHome();
         }
+
+        function goToArticle(articleId) {
+            router.navigateToArticle(articleId);
+        }
+
+        // Initialize router
+        const router = new GitHubPagesRouter();
         
-        // If we have an article ID, load it with HTMX
-        if (articleId) {
-          const contentDiv = document.getElementById('content');
-          contentDiv.innerHTML = '<div class="loading-indicator">Loading article...</div>';
-          
-          // Use HTMX to load the article
-          htmx.ajax('GET', `https://server.grabbiel.com/article/${articleId}/index.html`, {
-            target: '#content',
-            swap: 'innerHTML'
-          });
-          
-          document.title = `Article ${articleId} - Grabbiel Blog`;
-        }
-      });
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle GitHub Pages redirects from 404.html
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectPath = urlParams.get('redirect');
+            
+            if (redirectPath) {
+                // Remove the redirect parameter and update the URL
+                window.history.replaceState({}, '', redirectPath);
+            }
+            
+            router.init();
+        });
+
+        // HTMX error handling
+        document.addEventListener('htmx:responseError', function(event) {
+            const container = document.getElementById('content-container');
+            
+            let errorMessage = 'Unable to load content. Please try again later.';
+            
+            if (event.detail.xhr.status === 404) {
+                errorMessage = 'Content not found. It may have been moved or deleted.';
+            } else if (event.detail.xhr.status >= 500) {
+                errorMessage = 'Server error. Please try again later.';
+            }
+            
+            container.innerHTML = `
+                <div class="error">
+                    <h2>Error Loading Content</h2>
+                    <p>${errorMessage}</p>
+                    <div style="margin-top: 20px;">
+                        <button onclick="location.reload()" style="background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                            Retry
+                        </button>
+                        <button onclick="goHome()" style="background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                            Back to Blog
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
+        // Handle successful content load
+        document.addEventListener('htmx:afterSettle', function(event) {
+            if (event.target.id === 'content-container') {
+                // Add click handlers for article navigation in blog list
+                const articleCards = document.querySelectorAll('.article-card[data-article-id]');
+                articleCards.forEach(card => {
+                    card.addEventListener('click', function() {
+                        const articleId = this.getAttribute('data-article-id');
+                        goToArticle(articleId);
+                    });
+                });
+                
+                // Update page title if we loaded an article
+                const articleTitle = document.querySelector('.article-title-large');
+                if (articleTitle) {
+                    document.title = `${articleTitle.textContent} - Grabbiel Blog`;
+                }
+            }
+        });
     </script>
-  </body>
+</body>
 </html>
