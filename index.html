@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head id="doc-head">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grabbiel Blog</title>
@@ -196,7 +196,7 @@
         }
     </style>
 </head>
-<body hx-ext="head-support" id="doc-body">
+<body hx-ext="head-support">
     <div class="header">
         <div class="back-link" id="back-link" onclick="goHome()">Back to Blog</div>
         <h1>Grabbiel Blog</h1>
@@ -259,7 +259,7 @@
                     <div hx-get="https://server.grabbiel.com/blog/articles" 
                          hx-trigger="load"
                          hx-target="#content-container"
-                         hx-swap="innerHTML">
+                         hx-swap="outerHTML">
                         <div class="loading">
                             <p>Loading articles...</p>
                         </div>
@@ -281,8 +281,8 @@
                 this.container.innerHTML = `
                     <div hx-get="${articleUrl}" 
                         hx-trigger="load"
-                        hx-target="#content-container"
-                        hx-swap="innerHTML">
+                        hx-target="this"
+                        hx-swap="outerHTML">
                         <div class="loading">
                             <p>Loading article...</p>
                         </div>
