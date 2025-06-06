@@ -262,7 +262,7 @@
                 // Direct HTMX request - no attributes needed
                 htmx.ajax('GET', 'https://server.grabbiel.com/blog/articles', {
                     target: '#content-container',
-                    swap: 'outerHTML'
+                    swap: 'innerHTML'
                 });
             }
 
@@ -284,7 +284,7 @@
                 // Direct HTMX request - no attributes needed
                 htmx.ajax('GET', articleUrl, {
                     target: '#content-container',
-                    swap: 'outerHTML'
+                    swap: 'innerHTML'
                 });
             }
 
