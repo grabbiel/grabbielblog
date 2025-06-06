@@ -253,12 +253,6 @@
                 this.headerSubtitle.textContent = 'Latest articles and insights';
                 document.title = 'Grabbiel Blog';
                 
-                this.container.innerHTML = `
-                    <div class="loading">
-                        <p>Loading articles...</p>
-                    </div>
-                `;
-                
                 // Direct HTMX request - no attributes needed
                 htmx.ajax('GET', 'https://server.grabbiel.com/blog/articles', {
                     target: '#content-container',
@@ -274,12 +268,6 @@
                 
                 const articleUrl = `https://server.grabbiel.com/article/${articleId}`;
                 console.log('Loading article from:', articleUrl); // Debug log
-                
-                this.container.innerHTML = `
-                    <div class="loading">
-                        <p>Loading article...</p>
-                    </div>
-                `;
                 
                 // Direct HTMX request - no attributes needed
                 htmx.ajax('GET', articleUrl, {
