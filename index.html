@@ -275,23 +275,17 @@
                 const articleUrl = `https://server.grabbiel.com/article/${articleId}`;
                 console.log('Loading article from:', articleUrl); // Debug log
                 
-                // Create element without dynamic hx-get
                 this.container.innerHTML = `
-                    <div hx-trigger="load"
-                         hx-target="this"
-                         hx-swap="outerHTML">
-                        <div class="loading">
-                            <p>Loading article...</p>
-                        </div>
+                    <div class="loading">
+                        <p>Loading article...</p>
                     </div>
                 `;
                 
-                // Set hx-get attribute after DOM creation
-                const loadElement = this.container.firstElementChild;
-                loadElement.setAttribute('hx-get', articleUrl);
-                
-                htmx.process(this.container);
-                htmx.trigger(loadElement, 'load');
+                // Direct HTMX request - no attributes needed
+                htmx.ajax('GET', articleUrl, {
+                    target: '#content-container',
+                    swap: 'outerHTML'
+                });
             }
 
             navigateToHome() {
