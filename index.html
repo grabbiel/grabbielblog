@@ -323,11 +323,14 @@
             const redirectPath = urlParams.get('redirect');
             
             if (redirectPath) {
-                // Remove the redirect parameter and update the URL
-                window.history.replaceState({}, '', redirectPath);
+                // Clean the URL first, then handle routing
+                window.history.replaceState({}, '', '/');
+                // Override the path for routing
+                window.location.pathname = redirectPath;
+                router.handleRoute();
+            } else {
+                router.init();
             }
-            
-            router.init();
         });
 
         // HTMX error handling
