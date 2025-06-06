@@ -191,7 +191,6 @@
         class GitHubPagesRouter {
             constructor() {
                 this.container = document.getElementById('content-container');
-                this.headerSubtitle = document.getElementById('header-subtitle');
                 this.currentPath = '/'; // Track current logical path
             }
 
@@ -221,7 +220,6 @@
 
             showBlogList() {
                 this.currentPath = '/';
-                this.headerSubtitle.textContent = 'Latest articles and insights';
                 document.title = 'Grabbiel Blog';
                 
                 // Direct HTMX request - no attributes needed
@@ -233,7 +231,6 @@
 
             showArticle(articleId) {
                 this.currentPath = `/${articleId}`;
-                this.headerSubtitle.textContent = '';
                 document.title = `Article ${articleId} - Grabbiel Blog`;
                 
                 const articleUrl = `https://server.grabbiel.com/article/${articleId}`;
