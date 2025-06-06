@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grabbiel Blog</title>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="https://unpkg.com/htmx-ext-head-support@2.0.2" integrity="sha384-cvMqHzjCJsOHgGuyB3sWXaUSv/Krm0BdzjuI1rtkjCbL1l1oHJx+cHyVRJhyuEz0" crossorigin="anonymous"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -195,7 +196,7 @@
         }
     </style>
 </head>
-<body id="doc-body">
+<body hx-ext="head-support" id="doc-body">
     <div class="header">
         <div class="back-link" id="back-link" onclick="goHome()">Back to Blog</div>
         <h1>Grabbiel Blog</h1>
@@ -271,42 +272,25 @@
             }
 
             showArticle(articleId) {
-                // Update UI for article view
                 this.backLink.style.display = 'inline-block';
                 this.headerSubtitle.textContent = '';
                 document.title = `Article ${articleId} - Grabbiel Blog`;
                 
-                // Set up HTMX to load specific article
                 const articleUrl = `https://server.grabbiel.com/article/${articleId}`;
                 
                 this.container.innerHTML = `
-                    <!-- Load head elements first (links, scripts, styles) -->
                     <div hx-get="${articleUrl}" 
                         hx-trigger="load"
-                        hx-target="#doc-body"
-                        hx-swap="beforeend"
-                        hx-select="link > *"
-                        hx-on="htmx:afterSettle: console.log('✅ Head elements loaded')"
-                        style="display: none;"></div>
-                    
-                    <!-- Load body content after a small delay -->
-                    <div id="temp-loader"
-                        hx-get="${articleUrl}" 
-                        hx-trigger="load"
-                        hx-target="#temp-loader"
-                        hx-swap="afterend"
-                        hx-select="body > *"
-                        hx-on="htmx:afterSettle: replaceBodyContent(this)">
+                        hx-target="#content-container"
+                        hx-swap="innerHTML">
                         <div class="loading">
                             <p>Loading article...</p>
                         </div>
                     </div>
                 `;
                 
-                // Trigger HTMX
                 htmx.process(this.container);
-                htmx.trigger(this.container.querySelector('[hx-trigger="load"]'), 'load');
-                htmx.trigger(this.container.querySelector('#temp-loader'), 'load');
+                htmx.trigger(this.container.firstElementChild, 'load');
             }
 
             navigateToHome() {
@@ -320,35 +304,6 @@
             }
         }
 
-        function replaceBodyContent(loader) {
-            const allNewContent = [];
-            
-            // Collect ALL siblings that were inserted after the loader
-            let sibling = loader.nextElementSibling;
-            while (sibling) {
-                allNewContent.push(sibling);
-                sibling = sibling.nextElementSibling;
-            }
-            
-            if (allNewContent.length > 0) {
-                const container = document.getElementById('content-container');
-                container.innerHTML = '';
-                
-                // Append all the new content elements
-                allNewContent.forEach(element => {
-                    container.appendChild(element);
-                });
-                
-                loader.remove();
-                console.log('✅ Body content replaced');
-                
-                // Handle article title updates
-                const articleTitle = document.querySelector('.article-title-large');
-                if (articleTitle) {
-                    document.title = `${articleTitle.textContent} - Grabbiel Blog`;
-                }
-            }
-        }
 
         // Global navigation functions
         function goHome() {
