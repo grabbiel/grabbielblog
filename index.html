@@ -204,7 +204,6 @@
     </div>
 
     <main>
-        <!-- This container will hold either the blog list or individual article -->
         <div id="content-container">
             <div class="loading">
                 <p>Loading...</p>
@@ -213,48 +212,47 @@
     </main>
 
     <script>
-        // Router for GitHub Pages
         class GitHubPagesRouter {
             constructor() {
                 this.container = document.getElementById('content-container');
                 this.backLink = document.getElementById('back-link');
                 this.headerSubtitle = document.getElementById('header-subtitle');
+                this.currentPath = '/'; // Track current logical path
             }
 
             init() {
-                // Handle initial page load
                 this.handleRoute();
-                
-                // Handle browser back/forward
                 window.addEventListener('popstate', () => {
+                    this.currentPath = window.location.pathname;
                     this.handleRoute();
                 });
             }
 
-            handleRoute() {
-                const path = window.location.pathname;
+            handleRoute(forcePath = null) {
+                // Use forced path if provided, otherwise use current path
+                const path = forcePath || this.currentPath || window.location.pathname;
+                
+                console.log('Handling route:', path); // Debug log
                 
                 if (path === '/' || path === '/index.html') {
                     this.showBlogList();
                 } else {
-                    // Check if it's an article ID pattern
                     const articleMatch = path.match(/^\/(\d+)\/?$/);
                     if (articleMatch) {
                         this.showArticle(articleMatch[1]);
                     } else {
-                        // Unknown route - redirect to home
+                        console.log('Unknown route, redirecting to home:', path);
                         this.navigateToHome();
                     }
                 }
             }
 
             showBlogList() {
-                // Update UI for blog list view
+                this.currentPath = '/';
                 this.backLink.style.display = 'none';
                 this.headerSubtitle.textContent = 'Latest articles and insights';
                 document.title = 'Grabbiel Blog';
                 
-                // Set up HTMX to load blog articles
                 this.container.innerHTML = `
                     <div hx-get="https://server.grabbiel.com/blog/articles" 
                          hx-trigger="load"
@@ -266,17 +264,18 @@
                     </div>
                 `;
                 
-                // Trigger HTMX
                 htmx.process(this.container);
                 htmx.trigger(this.container.firstElementChild, 'load');
             }
 
             showArticle(articleId) {
+                this.currentPath = `/${articleId}`;
                 this.backLink.style.display = 'inline-block';
                 this.headerSubtitle.textContent = '';
                 document.title = `Article ${articleId} - Grabbiel Blog`;
                 
                 const articleUrl = `https://server.grabbiel.com/article/${articleId}`;
+                console.log('Loading article from:', articleUrl); // Debug log
                 
                 this.container.innerHTML = `
                     <div hx-get="${articleUrl}" 
@@ -294,16 +293,17 @@
             }
 
             navigateToHome() {
+                this.currentPath = '/';
                 window.history.pushState({}, '', '/');
                 this.showBlogList();
             }
 
             navigateToArticle(articleId) {
+                this.currentPath = `/${articleId}`;
                 window.history.pushState({}, '', `/${articleId}`);
                 this.showArticle(articleId);
             }
         }
-
 
         // Global navigation functions
         function goHome() {
@@ -323,32 +323,39 @@
             const redirectPath = urlParams.get('redirect');
             
             if (redirectPath) {
-                // Clean the URL first, then handle routing
-                window.history.replaceState({}, '', '/');
-                // Override the path for routing
-                window.location.pathname = redirectPath;
-                router.handleRoute();
+                console.log('Handling redirect from 404:', redirectPath); // Debug log
+                
+                // Clean the URL and set up proper routing
+                window.history.replaceState({}, '', redirectPath);
+                router.currentPath = redirectPath;
+                router.handleRoute(redirectPath);
             } else {
+                // Normal initialization
+                router.currentPath = window.location.pathname;
                 router.init();
             }
         });
 
-        // HTMX error handling
+        // Enhanced HTMX error handling
         document.addEventListener('htmx:responseError', function(event) {
-            const container = document.getElementById('content-container');
+            console.error('HTMX Response Error:', event.detail); // Debug log
             
+            const container = document.getElementById('content-container');
             let errorMessage = 'Unable to load content. Please try again later.';
             
             if (event.detail.xhr.status === 404) {
                 errorMessage = 'Content not found. It may have been moved or deleted.';
             } else if (event.detail.xhr.status >= 500) {
                 errorMessage = 'Server error. Please try again later.';
+            } else if (event.detail.xhr.status === 0) {
+                errorMessage = 'Network error. Please check your connection and try again.';
             }
             
             container.innerHTML = `
                 <div class="error">
                     <h2>Error Loading Content</h2>
                     <p>${errorMessage}</p>
+                    <p><small>Status: ${event.detail.xhr.status}</small></p>
                     <div style="margin-top: 20px;">
                         <button onclick="location.reload()" style="background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
                             Retry
@@ -360,9 +367,30 @@
                 </div>
             `;
         });
+
+        // Handle HTMX request errors (network issues, etc.)
+        document.addEventListener('htmx:sendError', function(event) {
+            console.error('HTMX Send Error:', event.detail); // Debug log
+            
+            const container = document.getElementById('content-container');
+            container.innerHTML = `
+                <div class="error">
+                    <h2>Network Error</h2>
+                    <p>Unable to connect to the server. Please check your internet connection.</p>
+                    <div style="margin-top: 20px;">
+                        <button onclick="location.reload()" style="background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                            Retry
+                        </button>
+                        <button onclick="goHome()" style="background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                            Back to Blog
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
         document.addEventListener('htmx:afterSettle', function(event) {
             if (event.target.id === 'content-container') {
-                // Add click handlers for article navigation in blog list
                 const articleCards = document.querySelectorAll('.article-card[data-article-id]');
                 articleCards.forEach(card => {
                     card.addEventListener('click', function() {
