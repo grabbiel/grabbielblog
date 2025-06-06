@@ -233,8 +233,6 @@
                 // Use forced path if provided, otherwise use current path
                 const path = forcePath || this.currentPath || window.location.pathname;
                 
-                console.log('Handling route:', path); // Debug log
-                
                 if (path === '/' || path === '/index.html') {
                     this.showBlogList();
                 } else {
@@ -242,7 +240,6 @@
                     if (articleMatch) {
                         this.showArticle(articleMatch[1]);
                     } else {
-                        console.log('Unknown route, redirecting to home:', path);
                         this.navigateToHome();
                     }
                 }
@@ -268,7 +265,6 @@
                 document.title = `Article ${articleId} - Grabbiel Blog`;
                 
                 const articleUrl = `https://server.grabbiel.com/article/${articleId}`;
-                console.log('Loading article from:', articleUrl); // Debug log
                 
                 // Direct HTMX request - no attributes needed
                 htmx.ajax('GET', articleUrl, {
@@ -308,7 +304,6 @@
             const redirectPath = urlParams.get('redirect');
             
             if (redirectPath) {
-                console.log('Handling redirect from 404:', redirectPath); // Debug log
                 
                 // Clean the URL and set up proper routing
                 window.history.replaceState({}, '', redirectPath);
