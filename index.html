@@ -254,18 +254,16 @@
                 document.title = 'Grabbiel Blog';
                 
                 this.container.innerHTML = `
-                    <div hx-get="https://server.grabbiel.com/blog/articles" 
-                         hx-trigger="load"
-                         hx-target="#content-container"
-                         hx-swap="outerHTML">
-                        <div class="loading">
-                            <p>Loading articles...</p>
-                        </div>
+                    <div class="loading">
+                        <p>Loading articles...</p>
                     </div>
                 `;
                 
-                htmx.process(this.container);
-                htmx.trigger(this.container.firstElementChild, 'load');
+                // Direct HTMX request - no attributes needed
+                htmx.ajax('GET', 'https://server.grabbiel.com/blog/articles', {
+                    target: '#content-container',
+                    swap: 'outerHTML'
+                });
             }
 
             showArticle(articleId) {
@@ -277,19 +275,23 @@
                 const articleUrl = `https://server.grabbiel.com/article/${articleId}`;
                 console.log('Loading article from:', articleUrl); // Debug log
                 
+                // Create element without dynamic hx-get
                 this.container.innerHTML = `
-                    <div hx-get="${articleUrl}" 
-                        hx-trigger="load"
-                        hx-target="this"
-                        hx-swap="outerHTML">
+                    <div hx-trigger="load"
+                         hx-target="this"
+                         hx-swap="outerHTML">
                         <div class="loading">
                             <p>Loading article...</p>
                         </div>
                     </div>
                 `;
                 
+                // Set hx-get attribute after DOM creation
+                const loadElement = this.container.firstElementChild;
+                loadElement.setAttribute('hx-get', articleUrl);
+                
                 htmx.process(this.container);
-                htmx.trigger(this.container.firstElementChild, 'load');
+                htmx.trigger(loadElement, 'load');
             }
 
             navigateToHome() {
