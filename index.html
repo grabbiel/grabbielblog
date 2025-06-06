@@ -28,23 +28,6 @@
             margin: 0;
         }
         
-        .back-link {
-            display: none;
-            color: #3498db;
-            text-decoration: none;
-            margin-bottom: 20px;
-            font-weight: 500;
-            cursor: pointer;
-        }
-        
-        .back-link:hover {
-            text-decoration: underline;
-        }
-        
-        .back-link::before {
-            content: "← ";
-        }
-        
         .loading {
             text-align: center;
             padding: 40px;
@@ -208,7 +191,6 @@
         class GitHubPagesRouter {
             constructor() {
                 this.container = document.getElementById('content-container');
-                this.backLink = document.getElementById('back-link');
                 this.headerSubtitle = document.getElementById('header-subtitle');
                 this.currentPath = '/'; // Track current logical path
             }
@@ -239,7 +221,6 @@
 
             showBlogList() {
                 this.currentPath = '/';
-                this.backLink.style.display = 'none';
                 this.headerSubtitle.textContent = 'Latest articles and insights';
                 document.title = 'Grabbiel Blog';
                 
@@ -252,7 +233,6 @@
 
             showArticle(articleId) {
                 this.currentPath = `/${articleId}`;
-                this.backLink.style.display = 'inline-block';
                 this.headerSubtitle.textContent = '';
                 document.title = `Article ${articleId} - Grabbiel Blog`;
                 
