@@ -1,143 +1,154 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Learn about programming through statistics and games."
+    />
     <title>Grabbiel Blog</title>
     <script src="https://unpkg.com/htmx.org@2.0.4"></script>
     <script src="https://unpkg.com/htmx-ext-head-support@2.0.2"></script>
     <meta name="htmx-config" content='{"selfRequestsOnly": false}' />
-    <link rel="stylesheet" type="text/css" href="css/style.css">
-    <link rel="icon" type="image/png" href="favicon.png"/>
-    <link rel="shortcut icon" href="favicon.ico"/>
-    <link rel="apple-touch-icon-precomposed" sizes="180x180" href="favicon.png"/>
-
-</head>
-<body hx-ext="head-support">
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="shortcut icon" href="favicon.ico" />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="180x180"
+      href="favicon.png"
+    />
+  </head>
+  <body hx-ext="head-support">
     <div class="header">
-        <h1 onclick="goHome()">Grabbiel Blog</h1>
+      <h1 onclick="goHome()">Grabbiel Blog</h1>
     </div>
 
     <main>
-        <div id="content-container">
-            <div class="loading">
-                <p>Loading...</p>
-            </div>
+      <div id="content-container">
+        <div class="loading">
+          <p>Loading...</p>
         </div>
+      </div>
     </main>
 
     <script>
-        class GitHubPagesRouter {
-            constructor() {
-                this.container = document.getElementById('content-container');
-                this.currentPath = '/'; // Track current logical path
-            }
-
-            init() {
-                this.handleRoute();
-                window.addEventListener('popstate', () => {
-                    this.currentPath = window.location.pathname;
-                    this.handleRoute();
-                });
-            }
-
-            handleRoute(forcePath = null) {
-                // Use forced path if provided, otherwise use current path
-                const path = forcePath || this.currentPath || window.location.pathname;
-                
-                if (path === '/' || path === '/index.html') {
-                    this.showBlogList();
-                } else {
-                    const articleMatch = path.match(/^\/(\d+)\/?$/);
-                    if (articleMatch) {
-                        this.showArticle(articleMatch[1]);
-                    } else {
-                        this.navigateToHome();
-                    }
-                }
-            }
-
-            showBlogList() {
-                this.currentPath = '/';
-                document.title = 'Grabbiel Blog';
-                
-                // Direct HTMX request - no attributes needed
-                htmx.ajax('GET', 'https://server.grabbiel.com/blog/articles', {
-                    target: '#content-container',
-                    swap: 'outerHTML'
-                });
-            }
-
-            showArticle(articleId) {
-                this.currentPath = `/${articleId}`;
-                document.title = `Article ${articleId} - Grabbiel Blog`;
-                
-                const articleUrl = `https://server.grabbiel.com/article/${articleId}`;
-                
-                // Direct HTMX request - no attributes needed
-                htmx.ajax('GET', articleUrl, {
-                    target: '#content-container',
-                    swap: 'outerHTML'
-                });
-            }
-
-            navigateToHome() {
-                this.currentPath = '/';
-                window.history.pushState({}, '', '/');
-                this.showBlogList();
-            }
-
-            navigateToArticle(articleId) {
-                this.currentPath = `/${articleId}`;
-                window.history.pushState({}, '', `/${articleId}`);
-                this.showArticle(articleId);
-            }
+      class GitHubPagesRouter {
+        constructor() {
+          this.container = document.getElementById("content-container");
+          this.currentPath = "/"; // Track current logical path
         }
 
-        // Global navigation functions
-        function goHome() {
-            router.navigateToHome();
+        init() {
+          this.handleRoute();
+          window.addEventListener("popstate", () => {
+            this.currentPath = window.location.pathname;
+            this.handleRoute();
+          });
         }
 
-        function goToArticle(articleId) {
-            router.navigateToArticle(articleId);
-        }
+        handleRoute(forcePath = null) {
+          // Use forced path if provided, otherwise use current path
+          const path =
+            forcePath || this.currentPath || window.location.pathname;
 
-        // Initialize router
-        const router = new GitHubPagesRouter();
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            // Handle GitHub Pages redirects from 404.html
-            const urlParams = new URLSearchParams(window.location.search);
-            const redirectPath = urlParams.get('redirect');
-            
-            if (redirectPath) {
-                
-                // Clean the URL and set up proper routing
-                window.history.replaceState({}, '', redirectPath);
-                router.currentPath = redirectPath;
-                router.handleRoute(redirectPath);
+          if (path === "/" || path === "/index.html") {
+            this.showBlogList();
+          } else {
+            const articleMatch = path.match(/^\/(\d+)\/?$/);
+            if (articleMatch) {
+              this.showArticle(articleMatch[1]);
             } else {
-                // Normal initialization
-                router.currentPath = window.location.pathname;
-                router.init();
+              this.navigateToHome();
             }
-        });
+          }
+        }
 
-        // Enhanced HTMX error handling
-        document.addEventListener('htmx:responseError', function(event) {
-            console.error('HTMX Response Error:', event.detail); // Debug log
-            
-            const container = document.getElementById('content-container');
-            let errorMessage = 'Unable to load content. Please try again later.';
-            
-            if (event.detail.xhr.status === 404) {
-                errorMessage = 'Content not found. It may have been moved or deleted.';
-            } else if (event.detail.xhr.status >= 500) {
-                errorMessage = 'Server error. Please try again later.';
-            } else if (event.detail.xhr.status === 0) {
-                errorMessage = 'Network error. Please check your connection and try again.';
-            }
-            
-            container.innerHTML = `
+        showBlogList() {
+          this.currentPath = "/";
+          document.title = "Grabbiel Blog";
+
+          // Direct HTMX request - no attributes needed
+          htmx.ajax("GET", "https://server.grabbiel.com/blog/articles", {
+            target: "#content-container",
+            swap: "outerHTML",
+          });
+        }
+
+        showArticle(articleId) {
+          this.currentPath = `/${articleId}`;
+          document.title = `Article ${articleId} - Grabbiel Blog`;
+
+          const articleUrl = `https://server.grabbiel.com/article/${articleId}`;
+
+          // Direct HTMX request - no attributes needed
+          htmx.ajax("GET", articleUrl, {
+            target: "#content-container",
+            swap: "outerHTML",
+          });
+        }
+
+        navigateToHome() {
+          this.currentPath = "/";
+          window.history.pushState({}, "", "/");
+          this.showBlogList();
+        }
+
+        navigateToArticle(articleId) {
+          this.currentPath = `/${articleId}`;
+          window.history.pushState({}, "", `/${articleId}`);
+          this.showArticle(articleId);
+        }
+      }
+
+      // Global navigation functions
+      function goHome() {
+        router.navigateToHome();
+      }
+
+      function goToArticle(articleId) {
+        router.navigateToArticle(articleId);
+      }
+
+      // Initialize router
+      const router = new GitHubPagesRouter();
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Handle GitHub Pages redirects from 404.html
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectPath = urlParams.get("redirect");
+
+        if (redirectPath) {
+          // Clean the URL and set up proper routing
+          window.history.replaceState({}, "", redirectPath);
+          router.currentPath = redirectPath;
+          router.handleRoute(redirectPath);
+        } else {
+          // Normal initialization
+          router.currentPath = window.location.pathname;
+          router.init();
+        }
+      });
+
+      // Enhanced HTMX error handling
+      document.addEventListener("htmx:responseError", function (event) {
+        console.error("HTMX Response Error:", event.detail); // Debug log
+
+        const container = document.getElementById("content-container");
+        let errorMessage = "Unable to load content. Please try again later.";
+
+        if (event.detail.xhr.status === 404) {
+          errorMessage =
+            "Content not found. It may have been moved or deleted.";
+        } else if (event.detail.xhr.status >= 500) {
+          errorMessage = "Server error. Please try again later.";
+        } else if (event.detail.xhr.status === 0) {
+          errorMessage =
+            "Network error. Please check your connection and try again.";
+        }
+
+        container.innerHTML = `
                 <div class="error">
                     <h2>Error Loading Content</h2>
                     <p>${errorMessage}</p>
@@ -152,14 +163,14 @@
                     </div>
                 </div>
             `;
-        });
+      });
 
-        // Handle HTMX request errors (network issues, etc.)
-        document.addEventListener('htmx:sendError', function(event) {
-            console.error('HTMX Send Error:', event.detail); // Debug log
-            
-            const container = document.getElementById('content-container');
-            container.innerHTML = `
+      // Handle HTMX request errors (network issues, etc.)
+      document.addEventListener("htmx:sendError", function (event) {
+        console.error("HTMX Send Error:", event.detail); // Debug log
+
+        const container = document.getElementById("content-container");
+        container.innerHTML = `
                 <div class="error">
                     <h2>Network Error</h2>
                     <p>Unable to connect to the server. Please check your internet connection.</p>
@@ -173,30 +184,32 @@
                     </div>
                 </div>
             `;
-        });
+      });
 
-        document.addEventListener('htmx:afterSettle', function(event) {
-            if (event.target.id === 'content-container') {
-                const articleCards = document.querySelectorAll('.article-card[data-article-id]');
-                articleCards.forEach(card => {
-                    card.addEventListener('click', function() {
-                        const articleId = this.getAttribute('data-article-id');
-                        goToArticle(articleId);
-                    });
-                });
-            }
-        });
+      document.addEventListener("htmx:afterSettle", function (event) {
+        if (event.target.id === "content-container") {
+          const articleCards = document.querySelectorAll(
+            ".article-card[data-article-id]",
+          );
+          articleCards.forEach((card) => {
+            card.addEventListener("click", function () {
+              const articleId = this.getAttribute("data-article-id");
+              goToArticle(articleId);
+            });
+          });
+        }
+      });
 
-        document.body.addEventListener('htmx:afterOnLoad', function (event) {
-          const isArticlePath = /^\/\d+\/?$/.test(window.location.pathname);
-          const header = document.querySelector('.header');
+      document.body.addEventListener("htmx:afterOnLoad", function (event) {
+        const isArticlePath = /^\/\d+\/?$/.test(window.location.pathname);
+        const header = document.querySelector(".header");
 
-          if (isArticlePath && header) {
-            header.style.display = 'none';
-          } else if (header) {
-            header.style.display = '';
-          }
-        });
+        if (isArticlePath && header) {
+          header.style.display = "none";
+        } else if (header) {
+          header.style.display = "";
+        }
+      });
     </script>
-</body>
+  </body>
 </html>
